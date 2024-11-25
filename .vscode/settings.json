@@ -68,6 +68,8 @@
         "deque": "cpp",
         "__tree": "cpp",
         "map": "cpp",
-        "set": "cpp"
-    }
+        "set": "cpp",
+        "iomanip": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
