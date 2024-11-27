@@ -4,97 +4,95 @@ using namespace std;
 #define NIL -1
 
 struct Node {
-    int parent;
-    int leftChild;
-    int rightSlbling;
-    int depth;
+    int key;
+    Node *parent;
+    Node *leftChild;
+    Node *rightChild;
 };
 
-string getType(Node node) {
-    if (node.parent == NIL) {
-        return "root";
-    }
+Node *root, *NIL_NODE;
 
-    if (node.leftChild == NIL) {
-        return "leaf";
-    }
+void insert(int key) {
+    Node *y = NIL_NODE;
+    Node *x = root;
+    Node *z = new Node;
 
-    return "internal node";
-}    
+    z->key = key;
+    z->leftChild = NIL_NODE;
+    z->rightChild = NIL_NODE;
 
-void print(Node node, int num, Node nodes[]) {
-    cout << "node " << num << ": ";
-    cout << "parent = " << node.parent << ", ";
-    cout << "depth = " << node.depth << ", ";
-    cout << getType(node) << ", ";
-    cout << "[";
-    int child = node.leftChild;
-    for (int i = 0; child != NIL; i++) {
-        if (i != 0) {
-            cout << ", ";
+    while ( x != NIL_NODE ) {
+        y = x;
+        if ( z->key < x->key ) {
+            x = x->leftChild;
+        } else {
+            x = x->rightChild;
         }
-        cout << child;
-        child = nodes[child].rightSlbling;
     }
-    cout << "]" << endl;
+    z->parent = y;
+
+    if ( y == NIL_NODE ) {
+        root = z;
+    } else if ( z->key < y->key ) {
+        y->leftChild = z;
+    } else {
+        y->rightChild = z;
+    }
 }
 
+void find(int key) {
+    Node *u = root;
+    while ( u != NIL_NODE && u->key != key ) {
+        if ( key < u->key ) {
+            u = u->leftChild;
+        } else {
+            u = u->rightChild;
+        }
+    }
+    if ( u != NIL_NODE ) {
+        cout << "yes" << endl;
+    } else {
+        cout << "no" << endl;
+    }
+}
 
-void setDepth(int current, int value, Node nodes[]) {
-    nodes[current].depth = value;
-    if (nodes[current].rightSlbling != NIL) {
-        setDepth(nodes[current].rightSlbling, value, nodes);
-    }
-    if (nodes[current].leftChild != NIL) {
-        setDepth(nodes[current].leftChild, value + 1, nodes);
-    }
+void inorder(Node *u) {
+    if ( u == NIL_NODE ) return;
+    inorder(u->leftChild);
+    cout << " " << u->key;
+    inorder(u->rightChild);
+}
+
+void preorder(Node *u) {
+    if ( u == NIL_NODE ) return;
+    cout << " " << u->key;
+    preorder(u->leftChild);
+    preorder(u->rightChild);
+}
+
+void print() {
+    inorder(root);
+    cout << endl;
+    preorder(root);
+    cout << endl;
 }
 
 int main() {
-    int n;
+    int n, key;
     cin >> n;
-
-    Node nodes[n]; 
-
+    string command;
+    
     for (int i = 0; i < n; i++) {
-        Node node;
-        node.parent = NIL;
-        node.leftChild = NIL;
-        node.rightSlbling = NIL;
-        node.depth = 0;
-        nodes[i] = node;
-    }
-
-    int id, k, child, currentChild, root;
-
-    for (int i = 0; i < n; i++) {
-        cin >> id >> k;
-        // 次数kの分だけループする
-        for (int j = 0; j < k; j++) {
-            cin >> child;
-            if (j == 0) {
-                // 最初の子供は左の子供
-                nodes[id].leftChild = child;
-            } else {
-                // 2つ目以降の子供は右の兄弟
-                nodes[currentChild].rightSlbling = child;
-            }
-            nodes[child].parent = id;
-            currentChild = child;
+        cin >> command;
+        if (command == "insert") {
+            scanf("%d", &key);
+            insert(key);
+        } else if (command == "find") {
+            scanf("%d", &key);
+            find(key);
+        } else if (command == "print") {
+            print();
         }
-    }
-
-    for (int i = 0; i < n; i++) {
-        if (nodes[i].parent == NIL) {
-            root = i;
-            break;
-        }
-    }
-
-    setDepth(root, 0, nodes);
-
-    for (int i = 0; i < n; i++) {
-        print(nodes[i], i, nodes);
     }
 
     return 0;
