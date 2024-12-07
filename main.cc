@@ -1,46 +1,92 @@
 #include <iostream>
-#include <string>
-#include <climits>
+#include <stack>
 using namespace std;
 
-#define MAX 101
+struct Color{
+    string color;
+    int d;
+    int f;
+};
 
-int M[MAX][MAX];
+#define NIL -1
+int M[101][101];
 
-int matrixChainMuutiplication(int ps[], int n) {
-    for (int i=1; i<=n; i++) {
-        M[i][i] = 0;
-    }
+Color discover(Color color, int time) {
+    color.color = "gray";
+    color.d = time;
+    return color;
+}
 
-    for (int l=2; l<=n; l++) {
-        for (int i=1; i<=n-l+1; i++) {
-            int j =i+l-1;
-            M[i][j] = INT_MAX;
-            for (int k=i; k<=j-1; k++) {
-                M[i][j] = min(M[i][j], M[i][k] + M[k+1][j] + ps[i-1]*ps[k]*ps[j]);
-            }
+Color finish(Color color, int time) {
+    color.color = "black";
+    color.f = time;
+    return color;
+}
+
+int nexT(int n, Color colors[], int u) {
+    for (int i = 0; i < n; i++) {
+        if (M[u][i] == 1 && colors[i].color == "white") {
+            return i;
         }
     }
+    return NIL;
+}
 
-    return M[1][n];
+void dfs(int n, Color colors[]) {
+    stack<int> st;
+    int time = 0;
+    st.push(0);
+    time++;
+    colors[0] = discover(colors[0], time);
+    while (!st.empty()) {
+        int u = st.top();
+        int v = nexT(n, colors, u);
+        if (v != NIL) {
+            if (colors[v].color == "white") {
+                time++;
+                colors[v] = discover(colors[v], time);
+                st.push(v);
+            }
+        } else {
+            time++;
+            colors[u] = finish(colors[u], time);
+            st.pop();
+        }
+    }
 }
 
 int main() {
     int n;
-    scanf("%d", &n);
+    cin >> n;
 
-    int ps[n+1];
+    Color colors[n];
 
-    for (int i=0; i<n; i++) {
-        cin >> ps[i];
-        int tmp = 0;
-        cin >> tmp;
-        if (i == n-1) {
-            ps[i+1] = tmp;
+    for (int i = 0; i < n; i++) {
+        // initialize the matrix
+        for (int j = 0; j < n; j++) {
+            M[i][j] = 0;
+        }
+
+        // initialize the colors
+        colors[i].color = "white";
+        colors[i].d = 0;
+        colors[i].f = 0;
+
+        int vn, en;
+        cin >> vn >> en;
+        for (int j = 0; j < en; j++) {
+            int e;
+            cin >> e;
+            M[vn-1][e-1] = 1;
+            M[e-1][vn-1] = 1;
         }
     }
 
-    printf("%d\n", matrixChainMuutiplication(ps, n));
+    dfs(n, colors);
+
+    for (int i = 0; i < n; i++) {
+        cout << i+1 << " " << colors[i].d << " " << colors[i].f << endl;
+    }
 
     return 0;
 }
