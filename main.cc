@@ -1,59 +1,38 @@
 #include <iostream>
-#include <stack>
+#include <queue>
 using namespace std;
 
 struct Color{
     string color;
     int d;
-    int f;
 };
 
 #define NIL -1
 int M[101][101];
 
-Color discover(Color color, int time) {
+Color discover(Color color, int d) {
     color.color = "gray";
-    color.d = time;
+    color.d = d;
     return color;
 }
 
-Color finish(Color color, int time) {
-    color.color = "black";
-    color.f = time;
-    return color;
-}
-
-int nexT(int n, Color colors[], int u) {
-    for (int i = 0; i < n; i++) {
-        if (M[u][i] == 1 && colors[i].color == "white") {
-            return i;
-        }
-    }
-    return NIL;
-}
-
-void dfs(int n, Color colors[]) {
-    stack<int> st;
-    int time = 0;
-    st.push(0);
-    time++;
-    colors[0] = discover(colors[0], time);
-    while (!st.empty()) {
-        int u = st.top();
-        int v = nexT(n, colors, u);
-        if (v != NIL) {
-            if (colors[v].color == "white") {
-                time++;
-                colors[v] = discover(colors[v], time);
-                st.push(v);
+void bfs(int n, Color colors[]) {
+    queue<int> q;
+    colors[0] = discover(colors[0], 0);
+    q.push(0);
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        for (int v = 0; v < n; v++) {
+            if (M[u][v] == 1 && colors[v].color == "white") {
+                colors[v] = discover(colors[v], colors[u].d + 1);
+                q.push(v);
             }
-        } else {
-            time++;
-            colors[u] = finish(colors[u], time);
-            st.pop();
         }
+        colors[u].color = "black";
     }
 }
+
 
 int main() {
     int n;
@@ -69,8 +48,7 @@ int main() {
 
         // initialize the colors
         colors[i].color = "white";
-        colors[i].d = 0;
-        colors[i].f = 0;
+        colors[i].d = -1;
 
         int vn, en;
         cin >> vn >> en;
@@ -78,14 +56,13 @@ int main() {
             int e;
             cin >> e;
             M[vn-1][e-1] = 1;
-            M[e-1][vn-1] = 1;
         }
     }
 
-    dfs(n, colors);
+    bfs(n, colors);
 
     for (int i = 0; i < n; i++) {
-        cout << i+1 << " " << colors[i].d << " " << colors[i].f << endl;
+        cout << i+1 << " " << colors[i].d << endl;
     }
 
     return 0;
