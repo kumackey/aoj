@@ -1,69 +1,76 @@
 #include <iostream>
-#include <queue>
 using namespace std;
 
-struct Color{
-    string color;
-    int d;
-};
+#define MAX 101
+#define INFINITY 1<<21
+int M[MAX][MAX];
 
-#define NIL -1
-int M[101][101];
+#define white 0
+#define gray 1
+#define black 2
 
-Color discover(Color color, int d) {
-    color.color = "gray";
-    color.d = d;
-    return color;
-}
+void dijkstra(int n) {
+    int color[MAX], d[MAX], p[MAX];
 
-void bfs(int n, Color colors[]) {
-    queue<int> q;
-    colors[0] = discover(colors[0], 0);
-    q.push(0);
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (int v = 0; v < n; v++) {
-            if (M[u][v] == 1 && colors[v].color == "white") {
-                colors[v] = discover(colors[v], colors[u].d + 1);
-                q.push(v);
+    for (int i = 0; i < n; i++) {
+        color[i] = white;
+        d[i] = INFINITY;
+        p[i] = -1;
+    }
+
+    d[0] = 0;
+    p[0] = -1;
+
+    while (true) {
+        int mincost = INFINITY;
+        int u = -1;
+        for (int i = 0; i < n; i++) {
+            if (color[i] != black && d[i] < mincost) {
+                mincost = d[i];
+                u = i;
             }
         }
-        colors[u].color = "black";
+
+        if (u == -1) break;
+
+        color[u] = black;
+
+        for (int v = 0; v < n; v++) {
+            if (color[v] != black && M[u][v] != INFINITY) {
+                if (d[u] + M[u][v] < d[v]) {
+                    d[v] = d[u] + M[u][v];
+                    p[v] = u;
+                    color[v] = gray;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        cout << i << " " << (d[i] == INFINITY ? -1 : d[i]) << endl;
     }
 }
-
 
 int main() {
     int n;
     cin >> n;
 
-    Color colors[n];
-
     for (int i = 0; i < n; i++) {
-        // initialize the matrix
         for (int j = 0; j < n; j++) {
-            M[i][j] = 0;
-        }
-
-        // initialize the colors
-        colors[i].color = "white";
-        colors[i].d = -1;
-
-        int vn, en;
-        cin >> vn >> en;
-        for (int j = 0; j < en; j++) {
-            int e;
-            cin >> e;
-            M[vn-1][e-1] = 1;
+            M[i][j] = INFINITY;
         }
     }
 
-    bfs(n, colors);
-
-    for (int i = 0; i < n; i++) {
-        cout << i+1 << " " << colors[i].d << endl;
+    int u, k, v, c;
+    for (int i =0; i<n; i++) {
+        cin >> u >> k;
+        for (int j = 0; j<k; j++) {
+            cin >> v >> c;
+            M[u][v] = c;
+        }
     }
+
+    dijkstra(n);
 
     return 0;
 }
