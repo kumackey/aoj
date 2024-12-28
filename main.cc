@@ -1,76 +1,71 @@
 #include <iostream>
+#include <vector>
+#include <list>
+#include <queue>
 using namespace std;
 
-#define MAX 101
-#define INFINITY 1<<21
-int M[MAX][MAX];
+#define INFTY (1 << 30)
+#define MAX 100000
 
-#define white 0
-#define gray 1
-#define black 2
+class Edge {
+public:
+    int t, w;
+    Edge() {}
+    Edge(int t, int w) : t(t), w(w) {}
+};
 
-void dijkstra(int n) {
-    int color[MAX], d[MAX], p[MAX];
+vector<Edge> G[MAX];
+int n, d[MAX];
 
-    for (int i = 0; i < n; i++) {
-        color[i] = white;
-        d[i] = INFINITY;
-        p[i] = -1;
-    }
-
-    d[0] = 0;
-    p[0] = -1;
-
-    while (true) {
-        int mincost = INFINITY;
-        int u = -1;
-        for (int i = 0; i < n; i++) {
-            if (color[i] != black && d[i] < mincost) {
-                mincost = d[i];
-                u = i;
+void bfs(int s) {
+    for (int i = 0; i < n; i++) d[i] = INFTY;
+    queue<int> Q;
+    Q.push(s);
+    d[s] = 0;
+    int u;
+    while (!Q.empty()) {
+        u = Q.front(); Q.pop();
+        for (int i = 0; i < G[u].size(); i++) {
+            Edge e = G[u][i];
+            if ( d[e.t] == INFTY ) {
+                d[e.t] = d[u] + e.w;
+                Q.push(e.t);
             }
         }
-
-        if (u == -1) break;
-
-        color[u] = black;
-
-        for (int v = 0; v < n; v++) {
-            if (color[v] != black && M[u][v] != INFINITY) {
-                if (d[u] + M[u][v] < d[v]) {
-                    d[v] = d[u] + M[u][v];
-                    p[v] = u;
-                    color[v] = gray;
-                }
-            }
-        }
-    }
-
-    for (int i = 0; i < n; i++) {
-        cout << i << " " << (d[i] == INFINITY ? -1 : d[i]) << endl;
     }
 }
 
+void solve() {
+    bfs(0);
+    int maxv = 0;
+    int tgt = 0;
+    for ( int i =0; i < n; i++) {
+        if (d[i] == INFTY) continue;
+        if (maxv < d[i]) {
+            maxv = d[i];
+            tgt = i;
+        }
+    }
+
+    bfs(tgt);
+    maxv = 0;
+    for ( int i =0; i < n; i++) {
+        if (d[i] == INFTY) continue;
+        if (maxv < d[i]) {
+            maxv = d[i];
+        }
+    }
+
+    cout << maxv << endl;
+}
+
 int main() {
-    int n;
+    int s, t, w;
     cin >> n;
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            M[i][j] = INFINITY;
-        }
+    for (int i = 0; i < n-1; i++) {
+        cin >> s >> t >> w;
+        G[s].push_back(Edge(t, w));
+        G[t].push_back(Edge(s, w));
     }
-
-    int u, k, v, c;
-    for (int i =0; i<n; i++) {
-        cin >> u >> k;
-        for (int j = 0; j<k; j++) {
-            cin >> v >> c;
-            M[u][v] = c;
-        }
-    }
-
-    dijkstra(n);
-
-    return 0;
+    solve();
 }
