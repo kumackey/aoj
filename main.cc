@@ -2,70 +2,84 @@
 #include <vector>
 #include <list>
 #include <queue>
+#include <algorithm>
 using namespace std;
 
-#define INFTY (1 << 30)
 #define MAX 100000
 
 class Edge {
 public:
-    int t, w;
+    int s, t, w;
     Edge() {}
-    Edge(int t, int w) : t(t), w(w) {}
+    Edge(int s, int t, int w) : s(s), t(t), w(w) {}
 };
 
-vector<Edge> G[MAX];
-int n, d[MAX];
+class DisjointSet {
+    public:
+    vector<int> rank, p;
+    DisjointSet() {}
+    DisjointSet(int size) {
+        rank.resize(size, 0);
+        p.resize(size, 0);
+        for (int i=0;i<size;i++) makeSet(i);
+    }
 
-void bfs(int s) {
-    for (int i = 0; i < n; i++) d[i] = INFTY;
-    queue<int> Q;
-    Q.push(s);
-    d[s] = 0;
-    int u;
-    while (!Q.empty()) {
-        u = Q.front(); Q.pop();
-        for (int i = 0; i < G[u].size(); i++) {
-            Edge e = G[u][i];
-            if ( d[e.t] == INFTY ) {
-                d[e.t] = d[u] + e.w;
-                Q.push(e.t);
+    void makeSet(int x) {
+        p[x] = x;
+        rank[x] = 0;
+    }
+
+    bool same(int x, int y) {
+        return findSet(x) == findSet(y);
+    }
+
+    void unite(int x, int y) {
+        link(findSet(x), findSet(y));
+    }
+
+    void link(int x, int y) {
+        if (rank[x]>rank[y]) {
+            p[y] = x;
+        } else {
+            p[x] = y;
+            if (rank[x] == rank[y]) {
+                rank[y]++;
             }
         }
     }
-}
 
-void solve() {
-    bfs(0);
-    int maxv = 0;
-    int tgt = 0;
-    for ( int i =0; i < n; i++) {
-        if (d[i] == INFTY) continue;
-        if (maxv < d[i]) {
-            maxv = d[i];
-            tgt = i;
+    int findSet(int x) {
+        if (x != p[x]) {
+            p[x] = findSet(p[x]);
         }
-    }
 
-    bfs(tgt);
-    maxv = 0;
-    for ( int i =0; i < n; i++) {
-        if (d[i] == INFTY) continue;
-        if (maxv < d[i]) {
-            maxv = d[i];
-        }
+        return p[x];
     }
-
-    cout << maxv << endl;
-}
+};
 
 int main() {
-    int s, t, w;
-    cin >> n;
-    for (int i = 0; i < n-1; i++) {
+    int v, e, s, t, w;
+    cin >> v >> e;
+    vector<Edge> Edges(e);
+    for (int i = 0; i < e; i++) {
         cin >> s >> t >> w;
-        G[s].push_back(Edge(t, w));
-        G[t].push_back(Edge(s, w));
+        Edges[i] = Edge(s, t, w);
     }
-    solve();
+
+    sort(Edges.begin(), Edges.end(), [](Edge a, Edge b) {
+        return a.w < b.w;
+    });
+
+    DisjointSet ds(v);
+    int sum = 0;
+    for (int i = 0; i < e; i++) {
+        Edge e = Edges[i];
+        if (!ds.same(e.s, e.t)) {
+            ds.unite(e.s, e.t);
+            sum += e.w;
+        }
+    }
+    
+    cout << sum << endl;
+    return 0;
 }
