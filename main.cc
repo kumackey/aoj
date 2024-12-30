@@ -74,9 +74,25 @@ double getDistanceSP(Segment s, Point p) {
     return getDistanceLP(s, p);
 }
 
+static const int COUNTER_CLOCKWISE = 1;
+static const int CLOCKWISE = -1;
+static const int ONLINE_BACK = 2; // p2, p0, p1
+static const int ONLINE_FRONT = -2; // p0, p1, p2
+static const int ON_SEGMENT = 0; // p0, p2, p1
+
+int ccw(Point p0, Point p1, Point p2) {
+    Vector a = p1 - p0;
+    Vector b = p2 - p0;
+    if (cross(a, b) > EPS) return COUNTER_CLOCKWISE;
+    if (cross(a, b) < -EPS) return CLOCKWISE;
+    if (dot(a, b) < -EPS) return ONLINE_BACK;
+    if (a.norm() < b.norm()) return ONLINE_FRONT;
+    return ON_SEGMENT;
+}
+
 bool intersect(Segment s1, Segment s2) {
-    return (cross(s1.p2 - s1.p1, s2.p1 - s1.p1) * cross(s1.p2 - s1.p1, s2.p2 - s1.p1) < 0) &&
-           (cross(s2.p2 - s2.p1, s1.p1 - s2.p1) * cross(s2.p2 - s2.p1, s1.p2 - s2.p1) < 0);
+   return (ccw(s1.p1, s1.p2, s2.p1) * ccw(s1.p1, s1.p2, s2.p2) <= 0 &&
+        ccw(s2.p1, s2.p2, s1.p1) * ccw(s2.p1, s2.p2, s1.p2) <= 0);
 }
 
 double getDistanceSS(Segment s1, Segment s2) {
@@ -84,16 +100,45 @@ double getDistanceSS(Segment s1, Segment s2) {
     return min(min(getDistanceSP(s1, s2.p1), getDistanceSP(s1, s2.p2)), min(getDistanceSP(s2, s1.p1), getDistanceSP(s2, s1.p2)));
 }
 
-int main() {
-    int n;
-    int x0, y0, x1, y1, x2, y2, x3, y3;
-    cin >> n;
+Point getCrossPoint(Segment s1, Segment s2) {
+    Vector base = s2.p2 - s2.p1;
+    double d1 = fabs(cross(base, s1.p1 - s2.p1));
+    double d2 = fabs(cross(base, s1.p2 - s2.p1));
+    double t = d1 / (d1 + d2);
+    return s1.p1 + (s1.p2 - s1.p1) * t;
+}
 
-    for (int i = 0; i < n; i++) {
-        cin >> x0 >> y0 >> x1 >> y1 >> x2 >> y2 >> x3 >> y3;
-        Segment s1 = {Point(x0, y0), Point(x1, y1)};
-        Segment s2 = {Point(x2, y2), Point(x3, y3)};
-        cout << fixed << setprecision(10) << getDistanceSS(s1, s2) << endl;
+class Circle {
+    public:
+        Point c;
+        double r;
+
+        Circle(Point c = Point(), double r = 0.0): c(c), r(r) {}
+};
+
+pair<Point, Point> getCrossPointCL(Circle c, Line l) {
+    Vector pr = project(l, c.c);
+    Vector e = (l.p2 - l.p1) / (l.p2 - l.p1).abs();
+    double base = sqrt(c.r * c.r - (pr-c.c).norm());
+    return make_pair(pr + e * base, pr - e * base);
+}
+
+int main() {
+    int cx, cy, r, q;
+    int x1, y1, x2, y2;
+
+    cin >> cx >> cy >> r >> q;
+    Circle c = {Point(cx, cy), static_cast<double>(r)};
+
+    for (int i = 0; i < q; i++) {
+        cin >> x1 >> y1 >> x2 >> y2;
+        Line l = {Point(x1, y1), Point(x2, y2)};
+        pair<Point, Point> points = getCrossPointCL(c, l);
+        if (points.first < points.second) {
+            cout << fixed << setprecision(10) << points.first.x << " " << points.first.y << " " << points.second.x << " " << points.second.y << endl;
+        } else {
+            cout << fixed << setprecision(10) << points.second.x << " " << points.second.y << " " << points.first.x << " " << points.first.y << endl;
+        }
     }
 
     return 0;
