@@ -56,19 +56,44 @@ Point project(Segment s, Point p) {
     return s.p1 + base * r;
 }
 
+Point refect(Segment s, Point p) {
+    return p + (project(s, p) - p) * 2.0;
+}
+
+double getDistancePP(Point a, Point b) {
+    return (a - b).abs();
+}
+
+double getDistanceLP(Line l, Point p) {
+    return fabs(cross(l.p2 - l.p1, p - l.p1)) / (l.p2 - l.p1).abs();
+}
+
+double getDistanceSP(Segment s, Point p) {
+    if (dot(s.p2 - s.p1, p - s.p1) < 0.0) return getDistancePP(p, s.p1);
+    if (dot(s.p1 - s.p2, p - s.p2) < 0.0) return getDistancePP(p, s.p2);
+    return getDistanceLP(s, p);
+}
+
+bool intersect(Segment s1, Segment s2) {
+    return (cross(s1.p2 - s1.p1, s2.p1 - s1.p1) * cross(s1.p2 - s1.p1, s2.p2 - s1.p1) < 0) &&
+           (cross(s2.p2 - s2.p1, s1.p1 - s2.p1) * cross(s2.p2 - s2.p1, s1.p2 - s2.p1) < 0);
+}
+
+double getDistanceSS(Segment s1, Segment s2) {
+    if (intersect(s1, s2)) return 0.0;
+    return min(min(getDistanceSP(s1, s2.p1), getDistanceSP(s1, s2.p2)), min(getDistanceSP(s2, s1.p1), getDistanceSP(s2, s1.p2)));
+}
+
 int main() {
-    int x1, y1, x2, y2;
-    cin >> x1 >> y1 >> x2 >> y2;
-    Segment s = Segment{Point(x1, y1), Point(x2, y2)};
+    int n;
+    int x0, y0, x1, y1, x2, y2, x3, y3;
+    cin >> n;
 
-    int q;
-    int x, y;
-
-    cin >> q;
-    for (int i = 0; i < q; i++) {
-        cin >> x >> y;
-        Point p = project(s, Point(x, y));
-        cout << fixed << setprecision(10) << p.x << " " << p.y << endl;
+    for (int i = 0; i < n; i++) {
+        cin >> x0 >> y0 >> x1 >> y1 >> x2 >> y2 >> x3 >> y3;
+        Segment s1 = {Point(x0, y0), Point(x1, y1)};
+        Segment s2 = {Point(x2, y2), Point(x3, y3)};
+        cout << fixed << setprecision(10) << getDistanceSS(s1, s2) << endl;
     }
 
     return 0;
