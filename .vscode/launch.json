@@ -1,10 +1,12 @@
 {
     "configurations": [
+        
 {
     "name": "(lldb) Launch",
     "type": "cppdbg",
     "request": "launch",
     "program": "${fileDirname}\\${fileBasenameNoExtension}",
+    "targetArchitecture": "arm64",
     "args": [],
     "stopAtEntry": false,
     "cwd": "${workspaceFolder}",
